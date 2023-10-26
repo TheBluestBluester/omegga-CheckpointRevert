@@ -1,0 +1,7 @@
+{
+  "name": "CheckpointRevert",
+  "description": "Reverts players to checkpoints that were reset.",
+  "author": "Bluester16",
+  "config": {},
+  "commands": []
+}
