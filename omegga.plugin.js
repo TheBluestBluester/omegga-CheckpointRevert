@@ -15,7 +15,7 @@ module.exports = class Plugin {
 	
 	async runCheck() {
 		try{
-		const regex = new RegExp(`Ruleset.+?saving checkpoint for player (?<name>\\w+) \\((?<id>.+?)\\) . (?<x>.+?)\\s(?<y>.+?)\\s(?<z>.+?)`);
+		const regex = new RegExp(`Ruleset.+?saving checkpoint for player (?<name>\\w+) \\((?<id>.+?)\\) . (?<x>.+?)\\s(?<y>.+?)\\s(?<z>.+)`);
 		
 		const [
 		{
