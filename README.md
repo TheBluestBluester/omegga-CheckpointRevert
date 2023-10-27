@@ -2,4 +2,4 @@
 
 Reverts players to the last checkpoint.
 
-`omegga install gh:Bluester16/CheckpointRevert`
+`omegga install gh:TheBluestBluester/CheckpointRevert`
