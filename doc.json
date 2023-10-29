@@ -1,5 +1,5 @@
 {
-  "name": "CheckpointRevert",
+  "name": "RevertCheckpoint",
   "description": "Reverts players to checkpoints that were reset.",
   "author": "Bluester16",
   "config": {},
