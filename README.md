@@ -1,5 +1,5 @@
-# CheckpointRevert
+# RevertCheckpoint
 
 Reverts players to the last checkpoint.
 
-`omegga install gh:TheBluestBluester/CheckpointRevert`
+`omegga install gh:TheBluestBluester/RevertCheckpoint`
