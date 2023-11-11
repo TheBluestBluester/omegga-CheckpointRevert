@@ -6,6 +6,8 @@ let tick;
 
 let txtclr = '<color="bbb">';
 
+let last = 0;
+
 module.exports = class Plugin {
 	constructor(omegga, config, store) {
 		this.omegga = omegga;
@@ -13,45 +15,27 @@ module.exports = class Plugin {
 		this.store = store;
 	}
 	
-	async runCheck() {
-		try{
-		const regex = new RegExp(`Ruleset.+?saving checkpoint for player (?<name>\\w+) \\((?<id>.+?)\\) . (?<x>.+?)\\s(?<y>.+?)\\s(?<z>.+)`);
-		
-		const [
-		{
-			groups: { name, id, x, y, z },
-		},
-		] = await this.omegga.addWatcher(regex, {
-			timeoutDelay: 200,
-		});
-		
-		const numX = Number(x);
-		const numY = Number(y);
-		const numZ = Number(z);
-		
-		checkpoints[name] = [numX, numY, numZ];
-		recentSet[name] = true;
-		
-		}catch(e){}
-	}
-	
 	async closed() {
 		recentSet = {};
+		serverRestart = true;
 	}
 	
-	async checkDeathevents() {
-		const deathevents = await this.omegga.getPlugin('deathevents');
-		if(deathevents) {
-			console.log('Deathevents detected.');
-			deathevents.emitPlugin('subscribe');
-		}
+	async check() {
+		console.log('test');
 	}
 	
 	async init() {
 		// Write your plugin!
 		
 		// Incase the plugin loads before deathevents.
-		setTimeout(() => this.checkDeathevents(), 3000);
+		const deathevents = await this.omegga.getPlugin('deathevents');
+		if(deathevents) {
+			console.log('Deathevents detected.');
+			deathevents.emitPlugin('subscribe');
+		}
+		else {
+			console.log('Players will not be teleported back to the checkpoint on death.');
+		}
 		
 		this.omegga.on('cmd:clearcheckpoint', name => {
 			
@@ -61,7 +45,44 @@ module.exports = class Plugin {
 			
 		});
 		
-		tick = setInterval(() => this.runCheck(), 200);
+		function pattern(line) {
+			//try{
+			
+			const regex = /\[(?<counter>\d+)\]LogBrickadia: Ruleset.+?saving checkpoint for player (?<name>\w+) \((?<id>.+?)\) . (?<x>.+?)\s(?<y>.+?)\s(?<z>.+)/;
+			const match = line.match(regex);
+			if(match == null) {
+				return;
+			}
+			
+			const groups = match.groups
+			
+			if(groups.counter == last) {
+				return;
+			}
+			last = groups.counter;
+			
+			return groups;
+			
+			//}catch(e){}
+		}
+		
+		function exec(result) {
+
+			if(!result) {
+				return;
+			}
+			
+			const numX = Number(result.x);
+			const numY = Number(result.y);
+			const numZ = Number(result.z);
+			
+			checkpoints[result.name] = [numX, numY, numZ];
+			recentSet[result.name] = true;
+			
+		}
+		
+		//tick = setInterval(() => this.runCheck(), 200);
+		this.omegga.addMatcher((line) => pattern(line), exec);
 		
 		const keys = await this.store.keys();
 		
@@ -81,6 +102,7 @@ module.exports = class Plugin {
 	async pluginEvent(event, from, ...args) {
 		
 		if(event === 'spawn') {
+			//console.log('playerspawn');
 			const player = args[0].player;
 			
 			if(recentSet[player.name]) {
