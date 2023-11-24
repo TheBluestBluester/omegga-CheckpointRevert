@@ -34,7 +34,8 @@ module.exports = class Plugin {
 			deathevents.emitPlugin('subscribe');
 		}
 		else {
-			console.log('Players will not be teleported back to the checkpoint on death.');
+			console.log('This plugin requires deathevents to function.');
+			return;
 		}
 		
 		this.omegga.on('cmd:clearcheckpoint', name => {
