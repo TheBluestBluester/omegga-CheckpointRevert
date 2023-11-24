@@ -1,12 +1,11 @@
 
 let checkpoints = {};
 let recentSet = {};
-
 let tick;
-
 let txtclr = '<color="bbb">';
-
 let last = 0;
+let hasDeathevents = false;
+let joined = {};
 
 module.exports = class Plugin {
 	constructor(omegga, config, store) {
@@ -17,11 +16,7 @@ module.exports = class Plugin {
 	
 	async closed() {
 		recentSet = {};
-		serverRestart = true;
-	}
-	
-	async check() {
-		console.log('test');
+		//serverRestart = true;
 	}
 	
 	async init() {
@@ -34,15 +29,20 @@ module.exports = class Plugin {
 			deathevents.emitPlugin('subscribe');
 		}
 		else {
-			console.log('This plugin requires deathevents to function.');
-			return;
+			console.log('Players will not be teleported back to the checkpoint on death.');
 		}
 		
 		this.omegga.on('cmd:clearcheckpoint', name => {
 			
 			delete checkpoints[name];
-			
+			console.log(checkpoints);
 			this.omegga.whisper(name,'[CR] - '+txtclr+'Your checkpoint is nolonger stored.<>');
+			
+		})
+		.on('join', async player => {
+			
+			joined[player.name] = true;
+			this.teleportToCheckpoint(player);
 			
 		});
 		
@@ -56,7 +56,6 @@ module.exports = class Plugin {
 			}
 			
 			const groups = match.groups
-			
 			if(groups.counter == last) {
 				return;
 			}
@@ -90,9 +89,7 @@ module.exports = class Plugin {
 		for(let k in keys) {
 			
 			const key = keys[k];
-			
 			const storedPos = await this.store.get(key);
-			
 			checkpoints[key] = storedPos;
 			
 		}
@@ -100,34 +97,44 @@ module.exports = class Plugin {
 		return { registeredCommands: ['revert'] };
 	}
 	
+	async teleportToCheckpoint(player) {
+		
+		if(recentSet[player.name]) {
+			return;
+		}
+		
+		if(!(player.name in checkpoints)) {
+			return;
+		}
+		
+		let pos = checkpoints[player.name];
+		
+		const brs = await this.omegga.getSaveData({center: pos, extent: [20,20,2]});
+		if(brs == null) {
+			this.omegga.whisper(player.name, '[CR] - '+txtclr+'Checkpoint not found.<>');
+			return;
+		}
+		
+		pos[2] += 10;
+		
+		this.omegga.writeln("Chat.Command /TP \"" + player.name + "\" " + pos.join(" ") + " 0");
+		this.omegga.whisper(player.name, '[CR] - '+txtclr+'Your checkpoint got reset! You were teleported to your last checkpoint.<>');
+		
+		pos[2] -= 10;
+		
+	}
+	
 	async pluginEvent(event, from, ...args) {
 		
 		if(event === 'spawn') {
 			//console.log('playerspawn');
 			const player = args[0].player;
-			
-			if(recentSet[player.name]) {
+			if(player.name in joined) {
+				delete joined[player.name];
 				return;
 			}
 			
-			let pos = checkpoints[player.name];
-			
-			if(pos == null) {
-				return;
-			}
-			
-			const brs = await this.omegga.getSaveData({center: pos, extent: [20,20,2]});
-			if(brs == null) {
-				this.omegga.whisper(player.name, '[CR] - '+txtclr+'Checkpoint not found.<>');
-				return;
-			}
-			
-			pos[2] += 10;
-			
-			this.omegga.writeln("Chat.Command /TP \"" + player.name + "\" " + pos.join(" ") + " 0");
-			this.omegga.whisper(player.name, '[CR] - '+txtclr+'Your checkpoint got reset! You were teleported to your last checkpoint.<>');
-			
-			pos[2] -= 10;
+			this.teleportToCheckpoint(player);
 			
 		}
 		
@@ -137,6 +144,8 @@ module.exports = class Plugin {
 		
 		const entries = Object.entries(checkpoints);
 		recentSet = {};
+		
+		await this.store.wipe();
 		
 		for(let e in entries) {
 			
