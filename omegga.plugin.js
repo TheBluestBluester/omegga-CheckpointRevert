@@ -37,7 +37,7 @@ module.exports = class Plugin {
 			delete checkpoints[name];
 			//console.log(checkpoints);
 			this.store.delete(name);
-			this.omegga.whisper(name,'[CR] - '+txtclr+'Your checkpoint is nolonger stored.<>');
+			this.omegga.whisper(name,'[RC] - '+txtclr+'Your checkpoint is nolonger stored.<>');
 			
 		})
 		.on('join', async player => {
@@ -112,14 +112,14 @@ module.exports = class Plugin {
 		
 		const brs = await this.omegga.getSaveData({center: pos, extent: [20,20,2]});
 		if(brs == null) {
-			this.omegga.whisper(player.name, '[CR] - '+txtclr+'Checkpoint not found.<>');
+			this.omegga.whisper(player.name, '[RC] - '+txtclr+'Checkpoint not found.<>');
 			return;
 		}
 		
 		pos[2] += 10;
 		
 		this.omegga.writeln("Chat.Command /TP \"" + player.name + "\" " + pos.join(" ") + " 0");
-		this.omegga.whisper(player.name, '[CR] - '+txtclr+'Your checkpoint got reset! You were teleported to your last checkpoint.<>');
+		this.omegga.whisper(player.name, '[RC] - '+txtclr+'Your checkpoint got reset! You were teleported to your last checkpoint.<>');
 		
 		pos[2] -= 10;
 		
