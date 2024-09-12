@@ -35,7 +35,8 @@ module.exports = class Plugin {
 		this.omegga.on('cmd:clearcheckpoint', name => {
 			
 			delete checkpoints[name];
-			console.log(checkpoints);
+			//console.log(checkpoints);
+			this.store.delete(name);
 			this.omegga.whisper(name,'[CR] - '+txtclr+'Your checkpoint is nolonger stored.<>');
 			
 		})
@@ -71,7 +72,7 @@ module.exports = class Plugin {
 			if(!result) {
 				return;
 			}
-			
+			//console.log(result);
 			const numX = Number(result.x);
 			const numY = Number(result.y);
 			const numZ = Number(result.z);
