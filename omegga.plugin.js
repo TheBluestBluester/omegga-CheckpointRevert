@@ -45,10 +45,21 @@ module.exports = class Plugin {
 			joined[player.name] = true;
 			this.teleportToCheckpoint(player);
 			
+		})
+		.on('checkpointClicked', async data => {
+			
+			const numX = Number(data.x);
+			const numY = Number(data.y);
+			const numZ = Number(data.z);
+			
+			checkpoints[data.name] = [numX, numY, numZ];
+			recentSet[data.name] = true;
+			
+			this.omegga.whisper(data.name, '[RC] - '+txtclr+'Your checkpoint is stored!<>');
+			
 		});
 		
-		function pattern(line) {
-			//try{
+		function pattern(line, omegga) {
 			
 			const regex = /\[(?<counter>\d+)\]LogBrickadia: Ruleset.+?saving checkpoint for player (?<name>\w+) \((?<id>.+?)\) . (?<x>.+?)\s(?<y>.+?)\s(?<z>.+)/;
 			const match = line.match(regex);
@@ -62,28 +73,12 @@ module.exports = class Plugin {
 			}
 			last = groups.counter;
 			
-			return groups;
-			
-			//}catch(e){}
-		}
-		
-		function exec(result) {
-
-			if(!result) {
-				return;
-			}
-			//console.log(result);
-			const numX = Number(result.x);
-			const numY = Number(result.y);
-			const numZ = Number(result.z);
-			
-			checkpoints[result.name] = [numX, numY, numZ];
-			recentSet[result.name] = true;
+			omegga.emit('checkpointClicked', groups);
 			
 		}
 		
 		//tick = setInterval(() => this.runCheck(), 200);
-		this.omegga.addMatcher((line) => pattern(line), exec);
+		this.omegga.addMatcher((line) => pattern(line, this.omegga), () => {});
 		
 		const keys = await this.store.keys();
 		
