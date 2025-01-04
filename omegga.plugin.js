@@ -105,8 +105,8 @@ module.exports = class Plugin {
 		
 		let pos = checkpoints[player.name];
 		
-		const brs = await this.omegga.getSaveData({center: pos, extent: [20,20,2]});
-		if(brs == null) {
+		const brs = await this.omegga.getSaveData({center: pos, extent: [20,20,20]});
+		if(brs == null || !brs.brick_assets.includes("B_CheckPoint")) {
 			this.omegga.whisper(player.name, '[RC] - '+txtclr+'Checkpoint not found.<>');
 			return;
 		}
